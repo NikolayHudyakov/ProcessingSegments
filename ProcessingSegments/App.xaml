@@ -2,8 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ProcessingSegments"
-             StartupUri="MainWindow.xaml">
+             xmlns:ioc="clr-namespace:ProcessingSegments.IoC"
+             StartupUri="Views/Windows/MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ioc:ViewModelsLocator x:Key="VmLocator"/>
+
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
