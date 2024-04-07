@@ -5,11 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ProcessingSegments"
         xmlns:vm="clr-namespace:ProcessingSegments.ViewModels"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
         d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
         mc:Ignorable="d"
-         DataContext="{Binding MainWindowViewModel, Source={StaticResource VmLocator}}"
-        Title="{Binding Title}" Height="450" Width="800">
+        DataContext="{Binding MainWindowViewModel, Source={StaticResource VmLocator}}"
+        Title="{Binding Title}" Height="450" Width="800" Background="#24282E">
     <Grid>
-
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Button Grid.Row="0" Content="кнопка" Command="{Binding CalculatePointsCommand}" VerticalAlignment="Top"/>
+        <lvc:CartesianChart Grid.Row="1" Series="{Binding Series}" Sections="{Binding Sections}"/>
     </Grid>
 </Window>
