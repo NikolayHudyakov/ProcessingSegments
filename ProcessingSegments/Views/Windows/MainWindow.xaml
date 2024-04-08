@@ -10,12 +10,22 @@
         mc:Ignorable="d"
         DataContext="{Binding MainWindowViewModel, Source={StaticResource VmLocator}}"
         Title="{Binding Title}" Height="450" Width="800" Background="#24282E">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <Button Grid.Row="0" Content="кнопка" Command="{Binding CalculatePointsCommand}" VerticalAlignment="Top"/>
-        <lvc:CartesianChart Grid.Row="1" Series="{Binding Series}" Sections="{Binding Sections}"/>
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Margin="5">
+            <Button Content="Загрузить точки" Command="{Binding LoadPointsCommand}" VerticalAlignment="Top"/>
+            
+            <Button Content="Вычислить" Command="{Binding CalcIncludedPointsCommand}" VerticalAlignment="Top"/>
+        </StackPanel>
+        
+        <lvc:CartesianChart Grid.Column="1" 
+                            Series="{Binding Series}" 
+                            Sections="{Binding Sections}"
+                            PointerPressedCommand="{Binding PointerPressedCommand}"
+                            PointerMoveCommand="{Binding PointerMoveCommand}"/>
     </Grid>
 </Window>
