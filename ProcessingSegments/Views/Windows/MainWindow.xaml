@@ -31,6 +31,7 @@
                             Sections="{Binding Sections}"
                             PointerPressedCommand="{Binding PointerPressedCommand}"
                             PointerMoveCommand="{Binding PointerMoveCommand}"
-                            PointerReleasedCommand="{Binding PointerReleasedCommand}"/>
+                            PointerReleasedCommand="{Binding PointerReleasedCommand}"
+                            AnimationsSpeed="00:00:00.200"/>
     </Grid>
 </Window>
