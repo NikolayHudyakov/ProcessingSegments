@@ -1,6 +1,6 @@
 ﻿namespace ProcessingSegments.Models.Interfaces
 {
-    internal interface IModel
+    public interface IModel
     {
         public IEnumerable<Point> GetPointsIncludedRectangle(IEnumerable<Point> points, Rectangle rectangle);
     }

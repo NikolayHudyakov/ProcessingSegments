@@ -17,15 +17,20 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Column="0" Margin="5">
-            <Button Content="Загрузить точки" Command="{Binding LoadPointsCommand}" VerticalAlignment="Top"/>
-            
-            <Button Content="Вычислить" Command="{Binding CalcIncludedPointsCommand}" VerticalAlignment="Top"/>
+            <Button Content="Загрузить точки" 
+                    Command="{Binding LoadPointsCommand}" 
+                    VerticalAlignment="Top"/>
+
+            <Button Content="Вычислить" 
+                    Command="{Binding CalcIncludedPointsCommand}"
+                    VerticalAlignment="Top"/>
         </StackPanel>
         
         <lvc:CartesianChart Grid.Column="1" 
                             Series="{Binding Series}" 
                             Sections="{Binding Sections}"
                             PointerPressedCommand="{Binding PointerPressedCommand}"
-                            PointerMoveCommand="{Binding PointerMoveCommand}"/>
+                            PointerMoveCommand="{Binding PointerMoveCommand}"
+                            PointerReleasedCommand="{Binding PointerReleasedCommand}"/>
     </Grid>
 </Window>
