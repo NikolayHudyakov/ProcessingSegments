@@ -4,40 +4,34 @@ namespace ProcessingSegments.Models
 {
     public class Model : IModel
     {
-        public IEnumerable<Point> GetPointsIncludedRectangle(IEnumerable<Point> points, Rectangle rectangle)
+        public IEnumerable<IEnumerable<Point>> GetPointsIncludedRectangle(IEnumerable<Point> points, Rectangle rectangle)
         {
             List<Point> listPoints = new(points);
-            List<Point>lineSeries
-
-            List<Point> points1 = [];
+            List<List<Point>> lineSeries = [];
+            List<Point> pointsIncluded = [];
             Rectangle correctRectangle = TransformToCorrectRectangle(rectangle);
 
             int sequentiallyEmpty = 0;
 
             for (var i = 0; i < listPoints.Count; i++)
             {
-                if (Included(listPoints[i]))
+                if (Included(listPoints[i]) || 
+                    (i > 0 && Included(listPoints[i - 1])) || 
+                    i < listPoints.Count - 1 && Included(listPoints[i + 1]))
                 {
-                    points1.Add(listPoints[i]);
+                    pointsIncluded.Add(listPoints[i]);
                     sequentiallyEmpty = 0;
                     continue;
                 }
 
-                if (i > 0 && Included(listPoints[i - 1]))
-                    points1.Add(listPoints[i]);
-
-                if (i < listPoints.Count - 1 && Included(listPoints[i + 1]))
-                    points1.Add(listPoints[i]);
-
-                sequentiallyEmpty++;
-
-                if (sequentiallyEmpty >= 2)
+                if (++sequentiallyEmpty == 2)
                 {
-
+                    lineSeries.Add(pointsIncluded);
+                    pointsIncluded = [];
                 }
             }
 
-            return points1;
+            return lineSeries;
 
             bool Included(Point point) =>
                 point.X >= correctRectangle.Xi && point.Y >= correctRectangle.Yi && 

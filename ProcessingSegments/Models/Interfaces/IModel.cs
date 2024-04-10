@@ -2,7 +2,7 @@
 {
     public interface IModel
     {
-        public IEnumerable<Point> GetPointsIncludedRectangle(IEnumerable<Point> points, Rectangle rectangle);
+        public IEnumerable<IEnumerable<Point>> GetPointsIncludedRectangle(IEnumerable<Point> points, Rectangle rectangle);
     }
 
     public record Point(double X, double Y);

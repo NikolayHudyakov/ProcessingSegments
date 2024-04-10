@@ -11,6 +11,7 @@ using ProcessingSegments.Commands;
 using ProcessingSegments.Models.Interfaces;
 using ProcessingSegments.Services.Interfaces;
 using SkiaSharp;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 
 namespace ProcessingSegments.ViewModels
@@ -62,7 +63,7 @@ namespace ProcessingSegments.ViewModels
             _pointsProviderService = pointsProviderService;
 
             Sections = [_rectangularSection];
-            Series = [_loadedLineSeries, _includedRectangleLineSeries];
+            Series = [_loadedLineSeries];
         }
 
         #region Commands
@@ -76,9 +77,9 @@ namespace ProcessingSegments.ViewModels
         #region Properties
         public static string Title => "Обработка отрезков";
 
-        public IEnumerable<RectangularSection> Sections { get; private init; }
+        public List<RectangularSection> Sections { get; private init; }
 
-        public IEnumerable<ISeries> Series { get; private init; }
+        public ObservableCollection<ISeries> Series { get; private init; }
         #endregion
 
         private void LoadPoints()
@@ -96,8 +97,18 @@ namespace ProcessingSegments.ViewModels
             if (_loadedLineSeries.Values == null)
                 return;
 
-            IEnumerable<Point> _pointsIncludedRectangle = _model.GetPointsIncludedRectangle(_loadedLineSeries.Values, _rectangle);
-            _includedRectangleLineSeries.Values = _pointsIncludedRectangle;
+            IEnumerable<IEnumerable<Point>> _pointsIncludedRectangle = _model.GetPointsIncludedRectangle(_loadedLineSeries.Values, _rectangle);
+            foreach (IEnumerable<Point> lineSeries in _pointsIncludedRectangle)
+            {
+                Series.Add(new LineSeries<Point> 
+                { 
+                    Values = lineSeries,
+                    Stroke = new SolidColorPaint(SKColors.Red),
+                    Fill = null,
+                    Mapping = (point, index) => new Coordinate(point.X, point.Y),
+                    LineSmoothness = 0,
+                });
+            }
         }
         
         #region DrawRectangle
