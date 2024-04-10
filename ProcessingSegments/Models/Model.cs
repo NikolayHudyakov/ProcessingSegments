@@ -7,26 +7,41 @@ namespace ProcessingSegments.Models
         public IEnumerable<Point> GetPointsIncludedRectangle(IEnumerable<Point> points, Rectangle rectangle)
         {
             List<Point> listPoints = new(points);
+            List<Point>lineSeries
+
+            List<Point> points1 = [];
             Rectangle correctRectangle = TransformToCorrectRectangle(rectangle);
+
+            int sequentiallyEmpty = 0;
 
             for (var i = 0; i < listPoints.Count; i++)
             {
                 if (Included(listPoints[i]))
                 {
-                    if(i > 0 && !Included(listPoints[i - 1]))
-                        yield return listPoints[i - 1];
+                    points1.Add(listPoints[i]);
+                    sequentiallyEmpty = 0;
+                    continue;
+                }
 
-                    yield return listPoints[i];
+                if (i > 0 && Included(listPoints[i - 1]))
+                    points1.Add(listPoints[i]);
 
-                    if (i < listPoints.Count - 1 && !Included(listPoints[i + 1]))
-                        yield return listPoints[i + 1];
-                } 
+                if (i < listPoints.Count - 1 && Included(listPoints[i + 1]))
+                    points1.Add(listPoints[i]);
+
+                sequentiallyEmpty++;
+
+                if (sequentiallyEmpty >= 2)
+                {
+
+                }
             }
+
+            return points1;
 
             bool Included(Point point) =>
                 point.X >= correctRectangle.Xi && point.Y >= correctRectangle.Yi && 
                 point.X <= correctRectangle.Xj && point.Y <= correctRectangle.Yj;
-
         }
 
         private Rectangle TransformToCorrectRectangle(Rectangle rectangle)

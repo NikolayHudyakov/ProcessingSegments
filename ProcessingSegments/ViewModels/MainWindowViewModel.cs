@@ -15,28 +15,12 @@ using System.Windows.Input;
 
 namespace ProcessingSegments.ViewModels
 {
-    internal class MainWindowViewModel(IModel model, IObjectProviderService<List<Point>> pointsProviderService) : ViewModel
+    internal class MainWindowViewModel : ViewModel
     {
-        private readonly IModel _model = model;
-        private readonly IObjectProviderService<List<Point>> _pointsProviderService = pointsProviderService;
+        private readonly IModel _model;
+        private readonly IObjectProviderService<List<Point>> _pointsProviderService;
 
-        private LineSeries<Point> _loadedLineSeries = new()
-        {
-            Stroke = new SolidColorPaint(SKColors.Lime),
-            Fill = null,
-            Mapping = (point, index) => new Coordinate(point.X, point.Y),
-            LineSmoothness = 0,
-
-        };
-        private LineSeries<Point> _includedRectangleLineSeries = new()
-        {
-            Stroke = new SolidColorPaint(SKColors.Red, 2),
-            Fill = null,
-            Mapping = (point, index) => new Coordinate(point.X, point.Y),
-            LineSmoothness = 0,
-
-        };
-        private RectangularSection _rectangularSection = new()
+        private readonly RectangularSection _rectangularSection = new()
         {
             Stroke = new SolidColorPaint
             {
@@ -45,10 +29,25 @@ namespace ProcessingSegments.ViewModels
                 PathEffect = new DashEffect([10, 10])
             }
         };
+        private readonly LineSeries<Point> _loadedLineSeries = new()
+        {
+            Stroke = new SolidColorPaint(SKColors.Lime),
+            Fill = null,
+            Mapping = (point, index) => new Coordinate(point.X, point.Y),
+            LineSmoothness = 0,
 
-        private IEnumerable<Point>? _points;
-        private IEnumerable<Point>? _pointsIncludedRectangle;
-        private readonly Rectangle _rectangle = new ();
+        };
+        private readonly LineSeries<Point> _includedRectangleLineSeries = new()
+        {
+            Stroke = new SolidColorPaint(SKColors.Red, 2),
+            Fill = null,
+            Mapping = (point, index) => new Coordinate(point.X, point.Y),
+            LineSmoothness = 0,
+
+        };
+
+        private readonly Rectangle _rectangle = new();
+        
         private bool _pointerPressed;
 
         private readonly ICommand? _loadPointsCommand;
@@ -56,6 +55,15 @@ namespace ProcessingSegments.ViewModels
         private readonly ICommand? _pointerPressedCommand;
         private readonly ICommand? _pointerMoveCommand;
         private readonly ICommand? _pointerReleasedCommand;
+
+        public MainWindowViewModel(IModel model, IObjectProviderService<List<Point>> pointsProviderService)
+        {
+            _model = model;
+            _pointsProviderService = pointsProviderService;
+
+            Sections = [_rectangularSection];
+            Series = [_loadedLineSeries, _includedRectangleLineSeries];
+        }
 
         #region Commands
         public ICommand LoadPointsCommand => _loadPointsCommand ?? new RelayCommand(LoadPoints);
@@ -68,32 +76,28 @@ namespace ProcessingSegments.ViewModels
         #region Properties
         public static string Title => "Обработка отрезков";
 
-        public ISeries[] Series => [ _loadedLineSeries, _includedRectangleLineSeries ];
+        public IEnumerable<RectangularSection> Sections { get; private init; }
 
-        public RectangularSection[] Sections => [ _rectangularSection ];
+        public IEnumerable<ISeries> Series { get; private init; }
         #endregion
 
         private void LoadPoints()
         {
             List<Point>? points = _pointsProviderService.GetObject();
 
-            if (points == null) 
+            if (points == null)
                 return;
 
-            _points = points;
-            _loadedLineSeries.Values = _points;
-            OnPropertyChanget(nameof(Series));
+            _loadedLineSeries.Values = points;
         }
 
         private void CalcIncludedPoints()
         {
-            if (_points == null)
+            if (_loadedLineSeries.Values == null)
                 return;
-            
-            _pointsIncludedRectangle = _model.GetPointsIncludedRectangle(_points, _rectangle);
-            _includedRectangleLineSeries.Values = _pointsIncludedRectangle;
 
-            OnPropertyChanget(nameof(Series));
+            IEnumerable<Point> _pointsIncludedRectangle = _model.GetPointsIncludedRectangle(_loadedLineSeries.Values, _rectangle);
+            _includedRectangleLineSeries.Values = _pointsIncludedRectangle;
         }
         
         #region DrawRectangle
@@ -111,15 +115,8 @@ namespace ProcessingSegments.ViewModels
 
             LvcPointD scaledPoint = GetCoordinatePointer(args);
 
-            _rectangle.Xi = scaledPoint.X;
-            _rectangle.Yi = scaledPoint.Y;
-            _rectangle.Xj = scaledPoint.X;
-            _rectangle.Yj = scaledPoint.Y;
-
             _rectangularSection.Xi = scaledPoint.X;
             _rectangularSection.Yi = scaledPoint.Y;
-            _rectangularSection.Xj = scaledPoint.X;
-            _rectangularSection.Yj = scaledPoint.Y;
         }
 
         private void PointerMove(object? obj)
@@ -128,16 +125,19 @@ namespace ProcessingSegments.ViewModels
 
             LvcPointD scaledPoint = GetCoordinatePointer(args);
 
-            _rectangle.Xj = scaledPoint.X;
-            _rectangle.Yj = scaledPoint.Y;
-
             _rectangularSection.Xj = scaledPoint.X;
             _rectangularSection.Yj = scaledPoint.Y;
-
-            OnPropertyChanget(nameof(Sections));
         }
 
-        private void PointerReleased(object? obj) => _pointerPressed = false;
+        private void PointerReleased(object? obj)
+        {
+            _pointerPressed = false;
+
+            _rectangle.Xi = _rectangularSection.Xi ?? 0;
+            _rectangle.Yi = _rectangularSection.Yi ?? 0; 
+            _rectangle.Xj = _rectangularSection.Xj ?? 0;
+            _rectangle.Yj = _rectangularSection.Yj ?? 0;
+        }
         #endregion
     }
 }

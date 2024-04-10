@@ -32,6 +32,6 @@
                             PointerPressedCommand="{Binding PointerPressedCommand}"
                             PointerMoveCommand="{Binding PointerMoveCommand}"
                             PointerReleasedCommand="{Binding PointerReleasedCommand}"
-                            AnimationsSpeed="00:00:00.200"/>
+                            AnimationsSpeed="00:00:00.100"/>
     </Grid>
 </Window>
