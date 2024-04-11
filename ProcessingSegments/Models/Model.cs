@@ -6,30 +6,30 @@ namespace ProcessingSegments.Models
     {
         public IEnumerable<IEnumerable<Point>> GetPointsIncludedRectangle(IEnumerable<Point> points, Rectangle rectangle)
         {
+            Rectangle correctRectangle = TransformToCorrectRectangle(rectangle);
             List<Point> listPoints = new(points);
             List<List<Point>> lineSeries = [];
             List<Point> pointsIncluded = [];
-            Rectangle correctRectangle = TransformToCorrectRectangle(rectangle);
-
-            int sequentiallyEmpty = 0;
-
+            
             for (var i = 0; i < listPoints.Count; i++)
             {
                 if (Included(listPoints[i]) || 
-                    (i > 0 && Included(listPoints[i - 1])) || 
+                    i > 0 && Included(listPoints[i - 1]) || 
                     i < listPoints.Count - 1 && Included(listPoints[i + 1]))
                 {
                     pointsIncluded.Add(listPoints[i]);
-                    sequentiallyEmpty = 0;
                     continue;
                 }
 
-                if (++sequentiallyEmpty == 2)
+                if (pointsIncluded.Count != 0)
                 {
                     lineSeries.Add(pointsIncluded);
                     pointsIncluded = [];
-                }
+                }   
             }
+
+            if (pointsIncluded.Count != 0)
+                lineSeries.Add(pointsIncluded);
 
             return lineSeries;
 

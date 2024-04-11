@@ -16,12 +16,12 @@ using System.Windows.Input;
 
 namespace ProcessingSegments.ViewModels
 {
-    internal class MainWindowViewModel : ViewModel
+    internal class MainWindowViewModel(IModel model, IObjectProviderService<List<Point>> pointsProviderService) : ViewModel
     {
-        private readonly IModel _model;
-        private readonly IObjectProviderService<List<Point>> _pointsProviderService;
+        private readonly IModel _model = model;
+        private readonly IObjectProviderService<List<Point>> _pointsProviderService = pointsProviderService;
 
-        private readonly RectangularSection _rectangularSection = new()
+        private static readonly RectangularSection _rectangularSection = new()
         {
             Stroke = new SolidColorPaint
             {
@@ -35,16 +35,7 @@ namespace ProcessingSegments.ViewModels
             Stroke = new SolidColorPaint(SKColors.Lime),
             Fill = null,
             Mapping = (point, index) => new Coordinate(point.X, point.Y),
-            LineSmoothness = 0,
-
-        };
-        private readonly LineSeries<Point> _includedRectangleLineSeries = new()
-        {
-            Stroke = new SolidColorPaint(SKColors.Red, 2),
-            Fill = null,
-            Mapping = (point, index) => new Coordinate(point.X, point.Y),
-            LineSmoothness = 0,
-
+            LineSmoothness = 0
         };
 
         private readonly Rectangle _rectangle = new();
@@ -57,18 +48,9 @@ namespace ProcessingSegments.ViewModels
         private readonly ICommand? _pointerMoveCommand;
         private readonly ICommand? _pointerReleasedCommand;
 
-        public MainWindowViewModel(IModel model, IObjectProviderService<List<Point>> pointsProviderService)
-        {
-            _model = model;
-            _pointsProviderService = pointsProviderService;
-
-            Sections = [_rectangularSection];
-            Series = [_loadedLineSeries];
-        }
-
         #region Commands
-        public ICommand LoadPointsCommand => _loadPointsCommand ?? new RelayCommand(LoadPoints);
-        public ICommand CalcIncludedPointsCommand => _calcIncludedPointsCommand ?? new RelayCommand(CalcIncludedPoints);
+        public ICommand LoadPointsCommand => _loadPointsCommand ?? new RelayCommand(LoadPointsAsync);
+        public ICommand CalcIncludedPointsCommand => _calcIncludedPointsCommand ?? new RelayCommand(CalcIncludedPointsAsync);
         public ICommand PointerPressedCommand => _pointerPressedCommand ?? new RelayCommand(PointerPressed);
         public ICommand PointerMoveCommand => _pointerMoveCommand ?? new RelayCommand(PointerMove);
         public ICommand PointerReleasedCommand => _pointerReleasedCommand ?? new RelayCommand(PointerReleased);
@@ -77,38 +59,43 @@ namespace ProcessingSegments.ViewModels
         #region Properties
         public static string Title => "Обработка отрезков";
 
-        public List<RectangularSection> Sections { get; private init; }
+        public ObservableCollection<RectangularSection> Sections { get; private init; } = [];
 
-        public ObservableCollection<ISeries> Series { get; private init; }
+        public ObservableCollection<ISeries> Series { get; private init; } = [];
         #endregion
 
-        private void LoadPoints()
+        private async void LoadPointsAsync()
         {
-            List<Point>? points = _pointsProviderService.GetObject();
+            List<Point>? points = await Task.Run(_pointsProviderService.GetObject); ;
 
             if (points == null)
                 return;
 
             _loadedLineSeries.Values = points;
+            Series.Add(_loadedLineSeries);
         }
 
-        private void CalcIncludedPoints()
+        private async void CalcIncludedPointsAsync()
         {
             if (_loadedLineSeries.Values == null)
                 return;
 
-            IEnumerable<IEnumerable<Point>> _pointsIncludedRectangle = _model.GetPointsIncludedRectangle(_loadedLineSeries.Values, _rectangle);
-            foreach (IEnumerable<Point> lineSeries in _pointsIncludedRectangle)
-            {
-                Series.Add(new LineSeries<Point> 
-                { 
-                    Values = lineSeries,
-                    Stroke = new SolidColorPaint(SKColors.Red),
+            IEnumerable<IEnumerable<Point>> lineSeriesIncludedRectangle =
+                    await Task.Run(() => _model.GetPointsIncludedRectangle(_loadedLineSeries.Values, _rectangle));
+
+            Series.Clear();
+
+            Series.Add(_loadedLineSeries);
+
+            foreach (IEnumerable<Point> points in lineSeriesIncludedRectangle)
+                Series.Add(new LineSeries<Point>
+                {
+                    Values = points,
+                    Stroke = new SolidColorPaint(SKColors.Red, 3),
                     Fill = null,
                     Mapping = (point, index) => new Coordinate(point.X, point.Y),
-                    LineSmoothness = 0,
+                    LineSmoothness = 0
                 });
-            }
         }
         
         #region DrawRectangle
@@ -120,6 +107,9 @@ namespace ProcessingSegments.ViewModels
 
         private void PointerPressed(object? obj)
         {
+            if(Sections.Count == 0)
+                Sections.Add(_rectangularSection); 
+
             _pointerPressed = true;
 
             if (obj is not PointerCommandArgs args) return;

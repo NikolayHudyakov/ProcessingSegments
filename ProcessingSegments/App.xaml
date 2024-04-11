@@ -7,7 +7,10 @@
     <Application.Resources>
         <ResourceDictionary>
             <ioc:ViewModelsLocator x:Key="VmLocator"/>
-
+            
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Views/Styles/Buttons.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
